@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Evaluation Service</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <script type="application/javascript" src="https://unpkg.com/react@16.12.0/umd/react.development.js"></script>
+    <script type="application/javascript" src="https://unpkg.com/react-dom@16.12.0/umd/react-dom.development.js"></script>
+    <script type="application/javascript" src="https://unpkg.com/@babel/standalone@7.8.3/babel.js"></script>
+    <script type="application/javascript" src="https://unpkg.com/prop-types@15.6.1/prop-types.js"></script>
+</head>
+<body style="">
+    <style>
+        body{
+            background-color: #e1e9c6;
+            background-image: url("bg-img.jpg");
+            background-size: contain;
+        }
+        .over-body{
+            background-color: #ffffff;
+        }
+
+    </style>
+
+    <div  class="container-sm p-0 min-vh-100 over-body">
+        <header>
+            <nav class="navbar bg-dark navbar-expand-lg">
+                <div class="container-fluid">
+                    <a class="navbar-brand text-light"><em class="fa fa-university fa-lg mr-2"></em>University Evaluation Service</a>
+                    <span class="float-right p-1 navbar-brand text-light">NTU</span>
+                </div>
+            </nav>
+        </header>
+        <div class="container-fluid p-4 vh-100" id="root">
+            <div className='row h-100 px-5'>
+
+
+            </div>
+        </div>
+    </div>
+
+
+    <script type="text/babel">
+
+        function App(){
+            const [appState, setAppState] = React.useState('HOME')
+            const [courses, setCourses] = React.useState(null)
+
+            React.useEffect(() => )
+
+            return(
+                    <></>
+            )
+
+        }
+
+        ReactDOM.render(
+                <React.StrictMode>
+                    <App />
+                </React.StrictMode>, document.getElementById("root"))
+
+        function fetchCourses(){
+            return window.fetch(baseLoc+'/get-courses',{
+                method: 'GET',
+                headers: appHeaders
+            })
+            .then(r => r.json())
+            .then(response => response)
+        }
+
+        const appHeaders = {
+            'Content-Type': 'application/json'
+        }
+        const baseLoc = 'http://localhost:8080/evaluation/'
+    </script>
+</body>
+</html>
