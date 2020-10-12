@@ -275,7 +275,10 @@
         if(status === 'REG'){
             return (
                 <RegistrationPage 
-                    onStartEval={() => setStatus('START')} 
+                    onStartEval={e => {
+                        e.preventDefault()
+                        setStatus('START')
+                    }} 
                     courses={courses} 
                     onCourseChange={e => setCourseId(e.target.value)}
                     onStudentCodeChange={e => setStudentCode(e.target.value)}
