@@ -48,14 +48,180 @@
 
     <script type="text/babel">
 
+    function TextAnswer({answer='', onTextChange}){
+            return(
+                <div className="border shadow">
+                    <textarea className="form-control" onChange={e => onTextChange(e.target.value)} value={answer} rows="2"></textarea>
+                </div>
+            )
+        }
+
+    function Rating({answer='NA',onRatingChange}){
+        return(
+            <div className="border shadow">
+                <select className='form-control' value={answer} onChange={e => onRatingChange(e.target.value)}>
+                <option value='NA' disabled hidden>Choose</option>
+                {Array.from(Array(10), (e,i) => {
+                    return <option value={i} key={i}>{i}</option>
+                })}
+                </select>
+            </div>
+        )
+    }
+
+    function QuestionItem(question='Rate the course', position=1,rating=true, answer='NA', onAnswerChange){
+        return(
+                <>
+                
+                <div className="text-muted">
+                {rating ? (<Rating answer={answer} onRatingChange={onAnswerChange} />):
+                    (<TextAnswer answer={answer} onTextChange={onAnswerChange} />)}
+                    </div>
+                </>
+            )
+    }
+
+    function Evaluation(){
+        const [questions, setQuestions] = React.useState(null)
+        const [solution, setSolution] = React.useState({})
+        const [position, setPosition] = React.useState(0)
+        const [evalStatus, setEvalStatus] = React.useState('LOADING')
+        const [error, setError] = React.useState('')
+
+        React.useEffect(() => {
+            getRequest('get-questions').then(data => {
+                    if(data.success){
+                        setQuestions(data.response)
+                        setEvalStatus('LOADED')
+                    }
+                })
+        },[])
+
+        function selectAnswer(ans){
+            setSolution(prevState => ({
+                ...prevState,
+                [position]:[ans]
+            }))
+        }
+
+        if(evalStatus==='LOADING'){
+            return (<>Loading Questions...</>)
+        }
+        if(evalStatus==='ERROR'){
+            return (<>{error}</>)
+        }
+        if(evalStatus==='LOADED'){
+            console.log(questions[position].question)
+            console.log(position)
+            return (<>
+                <div className="text-center">
+                    <span className={'p-2 badge badge-pill badge-warning border text-light'}>
+                        {questions.length} Questions
+                     </span>
+                </div>
+                <div className="row h-100 p-1">
+                    <QuestionItem 
+                        question={questions[position].question} 
+                        position={position+1} 
+                        rating={questions[position].rating}
+                        answer={solution[position]}
+                        onAnswerChange={(v) => selectAnswer(v)}
+                     />
+                </div>
+            </>)
+        }
+        return (<></>)
+    }
+
+    function RegistrationPage({courses, onStartEval, onCourseChange, onStudentNameChange, onStudentCodeChange, code, name, course}){
+        return(
+                <>
+                <div className='row h-100 px-5'>
+                    <div className='col-sm-6 m-auto p-0 card shadow'>
+                        <form onSubmit={onStartEval}>
+                        <div className='card-header border shadow-sm text-muted text-center'>
+                            <h5>Register for Evaluation</h5>
+                            </div>
+                        <div className='card-body m-3'>
+                            <div className='form-group text-muted'>
+                                <label htmlFor='course'>Select Course:</label>
+                                <select value={course} onChange={onCourseChange} id='course' className='form-control'>
+                                <option value={0} disabled hidden>Select Course</option>
+                                {courses}
+                                </select>
+                            </div>
+                            <div className='form-group text-muted'>
+                                <label htmlFor='name'>Student Name:</label>
+                                <input type='text' placeholder='Enter Your Name' value={name} className='form-control' id='name' onChange={onStudentNameChange}/>
+                                </div>
+                            <div className='form-group text-muted'>
+                                <label htmlFor='code'>Student Code:</label>
+                                <input type='text' placeholder='Enter Your Code' value={code} className='form-control' id='code' onChange={onStudentCodeChange}/>
+                                </div>
+                            <div className='form-group px-5 row'>
+                                    <button type="submit" className='btn btn-block btn-danger' disabled={course===0 || !name || !code}>
+                                        START</button>
+                                </div>
+                            </div></form>
+                        </div>
+                    </div>
+                </>
+            )
+    }
+
+    function EvaluationService({courses}){
+        const [status, setStatus] = React.useState('REG')
+        const [courseId, setCourseId] = React.useState(0)
+        const [studentCode, setStudentCode] = React.useState('')
+        const [studentName, setStudentName] = React.useState('')
+        
+
+        if(status === 'REG'){
+            return (
+                <RegistrationPage 
+                    onStartEval={() => setStatus('START')} 
+                    courses={courses} 
+                    onCourseChange={e => setCourseId(e.target.value)}
+                    onStudentCodeChange={e => setStudentCode(e.target.value)}
+                    onStudentNameChange={e => setStudentName(e.target.value)}
+                    code={studentCode}
+                    name={studentName}
+                    course={courseId}
+                />)
+        }
+        if(status === 'START'){
+            return (<Evaluation />)
+        }
+    }
+
+    function CourseOpt({id,name='Course Name',code='CODE'}){
+        return (<option value={id}>{code}-{name}</option>)
+    }
+
         function App(){
             const [appState, setAppState] = React.useState('HOME')
             const [courses, setCourses] = React.useState(null)
+            const [loadingCourse, setLoadingCourse] = React.useState(true)
 
-            React.useEffect(() => )
+            React.useEffect(() => {
+                getRequest('get-courses').then(data => {
+                    if(data.success){
+                        var cs = []
+                        for(var i=0;i<data.response.length;i++){
+                            var c = data.response[i]
+                            cs.push(<CourseOpt name={c.name} code={c.courseCode} id={c.id} key={c.id} />)
+                        }
+                        setLoadingCourse(false)
+                        setCourses(cs)
+                    }
+                })
+            },[])
 
+            if(loadingCourse){
+                return <>Loading courses...</>
+            }
             return(
-                    <></>
+                    <><EvaluationService courses={courses} /></>
             )
 
         }
@@ -65,8 +231,8 @@
                     <App />
                 </React.StrictMode>, document.getElementById("root"))
 
-        function fetchCourses(){
-            return window.fetch(baseLoc+'/get-courses',{
+        function getRequest(path){
+            return window.fetch(baseLoc+path,{
                 method: 'GET',
                 headers: appHeaders
             })
