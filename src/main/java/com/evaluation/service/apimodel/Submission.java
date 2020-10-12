@@ -83,7 +83,7 @@ public class Submission {
             this.responses.add(response);
         });
     }
-    private class QuestionResponse{
+    private static class QuestionResponse{
         private String question;
         private String response;
 

@@ -8,6 +8,7 @@ import com.evaluation.service.repository.EvaluationQuestionRepo;
 import com.evaluation.service.repository.StudentEvaluatorRepo;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
+import com.softobt.core.logger.services.LoggerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +50,9 @@ public class EvaluationService {
         studentEvaluator.setStudentId(submission.getStudentId());
         studentEvaluator.setSubmitDate(LocalDateTime.now());
         studentEvaluator.setSolution(submission.getEvaluationResponse());
-        if(storeHashedSubmission(submission)){
+        ChainBlock chainBlock = storeHashedSubmission(submission);
+        if(chainBlock!=null){
+            studentEvaluator.setChainBlock(chainBlock);
             studentEvaluatorRepo.save(studentEvaluator);
             return true;
         }
@@ -77,16 +80,21 @@ public class EvaluationService {
         for(int i=1; i<blockChain.size();i++){
             ChainBlock currentBlock = blockChain.get(i);
             ChainBlock previousBlock = blockChain.get(i-1);
-            Optional<StudentEvaluator> currentEvaluation = studentEvaluatorRepo.findByChainBlock_Id(currentBlock.getId());
-            Optional<StudentEvaluator> previousEvaluation = studentEvaluatorRepo.findByChainBlock_Id(previousBlock.getId());
-            if(!previousEvaluation.isPresent() || !currentEvaluation.isPresent())
-                return i;
-            Submission submission = new Submission(currentEvaluation.get(),currentBlock.getPreviousHash());
-            if(!currentBlock.getCurrentHash().equals(hashSubmission(submission,currentBlock.getPreviousHash()))){
+            LoggerService.info(EvaluationService.class,"current block id -"+currentBlock.getId()+" prev block id - "+previousBlock.getId());
+            Optional<StudentEvaluator> currentEvaluation = studentEvaluatorRepo.findByChainBlock(currentBlock);
+            Optional<StudentEvaluator> previousEvaluation = studentEvaluatorRepo.findByChainBlock(previousBlock);
+            if(!previousEvaluation.isPresent() || !currentEvaluation.isPresent()) {
+                LoggerService.info(EvaluationService.class,"not present");
                 return i;
             }
-            Submission pSubmission = new Submission(currentEvaluation.get(),previousBlock.getCurrentHash());
-            if(!currentBlock.getPreviousHash().equals(hashSubmission(pSubmission,previousBlock.getCurrentHash()))){
+            Submission submission = new Submission(currentEvaluation.get(),currentBlock.getPreviousHash());
+            if(!currentBlock.getCurrentHash().equals(hashSubmission(submission,currentBlock.getPreviousHash()))){
+                LoggerService.info(EvaluationService.class,"current not equal");
+                return i;
+            }
+            Submission pSubmission = new Submission(previousEvaluation.get(),previousBlock.getPreviousHash());
+            if(!currentBlock.getPreviousHash().equals(hashSubmission(pSubmission,previousBlock.getPreviousHash()))){
+                LoggerService.info(EvaluationService.class,"previous not equal");
                 return i;
             }
         }
@@ -102,14 +110,13 @@ public class EvaluationService {
             return "";
         }
     }
-    private boolean storeHashedSubmission(Submission submission){
+    private ChainBlock storeHashedSubmission(Submission submission){
         Optional<ChainBlock> previous = chainBlockRepo.findFirstByOrderByIdDesc();
         String previousHash = previous.isPresent() ? previous.get().getCurrentHash() : null;
         String newHash = hashSubmission(submission,previousHash);
         if(!Strings.isNullOrEmpty(newHash)){
-            chainBlockRepo.save(new ChainBlock(newHash, previousHash));
-            return true;
+            return chainBlockRepo.save(new ChainBlock(newHash, previousHash));
         }
-        return false;
+        return null;
     }
 }

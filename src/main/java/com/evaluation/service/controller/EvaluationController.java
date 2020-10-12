@@ -27,7 +27,7 @@ public class EvaluationController {
     }
 
     @PostMapping(value = "/submit")
-    public Boolean postSubmission(Submission submission){
+    public Boolean postSubmission(@RequestBody Submission submission){
         return evaluationService.postSubmission(submission);
     }
 

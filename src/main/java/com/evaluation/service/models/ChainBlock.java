@@ -11,6 +11,9 @@ public class ChainBlock {
     private String currentHash;
     private String previousHash;
 
+    public ChainBlock() {
+    }
+
     public ChainBlock(String currentHash, String previousHash) {
         this.currentHash = currentHash;
         this.previousHash = previousHash;

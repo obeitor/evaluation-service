@@ -1,5 +1,6 @@
 package com.evaluation.service.repository;
 
+import com.evaluation.service.models.ChainBlock;
 import com.evaluation.service.models.EvaluationCourse;
 import com.evaluation.service.models.StudentEvaluator;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,5 +12,5 @@ import java.util.Optional;
 @Repository
 public interface StudentEvaluatorRepo extends JpaRepository<StudentEvaluator, Long> {
     List<StudentEvaluator> findByCourse_Id(Long courseId);
-    Optional<StudentEvaluator> findByChainBlock_Id(Long chainBlockId);
+    Optional<StudentEvaluator> findByChainBlock(ChainBlock chainBlock);
 }
